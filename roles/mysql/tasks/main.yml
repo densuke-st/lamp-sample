@@ -1,0 +1,11 @@
+---
+- name: install packages
+  apt:
+    name:
+      - mysql-server
+
+- name: enable service
+  systemd:
+    name: mysql.service
+    enabled: true
+    state: started

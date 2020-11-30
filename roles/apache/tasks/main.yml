@@ -1,0 +1,50 @@
+---
+- name: install packages
+  apt:
+    name:
+      - apache2
+      - php
+
+- name: mkdir html in shared folder
+  file:
+    path: /media/sf_VirtualBox_Shared/html
+    state: directory
+    owner: root
+    group: vboxsf
+  register: modifywd
+
+- name: check DocumentRoot
+  stat:
+    path: /var/www/html
+  register: docroot
+
+- name: remove original DocumentRoot
+  when: docroot.stat.isdir
+  file:
+    path: /var/www/html
+    state: absent
+
+- name: symlink DocumentRoot to shared folder
+#  when: not docroot.stat.exists
+  file:
+    path: /var/www/html
+    state: link
+    src: /media/sf_VirtualBox_Shared/html
+
+- name: add capability to www-data
+  user:
+    name: www-data
+    append: true
+    groups:
+      - vboxsf
+
+- name: enable service
+  systemd:
+    name: apache2.service
+    enabled: true
+
+- name: restart service
+  systemd:
+    name: apache2.service
+    state: restarted
+  when: modifywd is changed
